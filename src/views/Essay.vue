@@ -5,8 +5,8 @@
         square-img(:image='image')
     .lower
         search-bar(@new-search="getResponseFromSearch($event)")
-        result-list(:answers="results")
-        #more(v-if="results.length") 
+        result-list(:results="results")
+        #more(v-if="answers.length") 
             button.more-search#left(v-if="prev"@click='goPrev') 
                 strong &larr;
             span#center {{ resultsToSee }} RESULTS
@@ -31,7 +31,6 @@ export default {
             title: 'This is a page for beauty product search',
             image: '/img/beauty-products.9840c506.jpg',
             firstAnswers: [],
-            answers: [],
             results: [],
             start: 0,
             next: false,
@@ -47,6 +46,9 @@ export default {
         resultsToSee(){
             if (this.answers.length - start < 0) return 0
             return this.answers.length - start
+        },
+        answers(){
+            return this.firstAnswers.sort( (a, b) => a.name - b.name )
         }
     },
     methods: {
@@ -61,8 +63,7 @@ export default {
                 })
             if (!this.firstAnswers.length) this.zero = true
             else {
-                this.sortTheList(this.firstAnswers)
-                this.cutTheList(this.answers, this.results, 0, 'right')
+                this.cutTheList(this.firstAnswers, this.results, 0, 'right')
                 return this.results
                 } 
                 
@@ -97,11 +98,11 @@ export default {
             return destination
         },
         sortTheList(){
-            return this.answers = this.firstAnswers.sort( (a, b) => a.name - b.name )
+            
         },
         goPrev(){
             this.results = []
-            this.cutTheList(this.answers, this.results, this.start)
+            this.cutTheList(this.answers, this.results, this.start, 'left')
             return this.results
         },
         goNext(){

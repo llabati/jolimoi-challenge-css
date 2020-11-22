@@ -1,7 +1,7 @@
 <template lang="pug">
 
 ul#list
-    li(v-for="item in answers")
+    li(v-for="item in results")
         result-item(:item="item") 
       
 </template>
@@ -10,7 +10,7 @@ ul#list
 import ResultItem from './ResultItem';
 export default {
     props: {
-        answers: Array
+        results: Array
     },
     components: {
         ResultItem
