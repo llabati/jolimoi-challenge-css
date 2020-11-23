@@ -1,7 +1,7 @@
 <template lang="pug">
-//img(src="require('../../resources/beauty-products.jpg')", alt="beauty products").total
-//img(src="../assets/beauty-products.jpg", alt="beauty products").total
-img(:src='image', alt="beauty products").total
+
+img(src="../assets/beauty-products.jpg", alt="beauty products").total
+//img(:src='image', alt="beauty products").total
 </template>
 
 
