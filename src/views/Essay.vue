@@ -7,9 +7,9 @@
         search-bar(@new-search="getResponseFromSearch($event)")
         result-list(:results="results")
         #more(v-if="answers.length") 
-            button.more-search#left(v-if="prev"@click='goPrev') 
+            button.more-search#left(v-if="prev" @click='goPrev') 
                 strong &larr;
-            span#center {{ resultsToSee }} RESULTS
+            span#center {{ resultsToSee }} RESULTS LEFT TO SEE
             button.more-search#right(v-if="next" @click='goNext') 
                 strong &rarr;
         p#loader(v-if="loading") Loading... Be patient, it could take some time.
@@ -28,7 +28,8 @@ import axios from 'axios';
 export default {
     data(){
         return {
-            title: 'This is a page for beauty product search',
+            title: 'This is a page for\nbeauty product search',
+            //image: '../assets/beauty-products.jpg',
             image: '/img/beauty-products.9840c506.jpg',
             firstAnswers: [],
             results: [],
@@ -38,21 +39,29 @@ export default {
             loading: false,
             problem: false,
             zero: false
-            //image: '../../resources/beauty-products.jpg',
-            // /img/beauty-products.9840c506.jpg
         }
     },
     computed: {
         resultsToSee(){
-            if (this.answers.length - start < 0) return 0
-            return this.answers.length - start
+            if (this.answers.length - this.start < 0) return 0
+            return this.answers.length - this.start
         },
         answers(){
             return this.firstAnswers.sort( (a, b) => a.name - b.name )
-        }
+        },
+        first(){
+            return this.answers[0]
+        },
+        last(){
+            return this.answers[this.answers.length-1]
+        },
+        
     },
     methods: {
         async getResponseFromSearch($event){
+            this.results = []
+            this.zero = false
+            this.problem = false
             this.loading = true
             await axios
                 .get('https://cors-anywhere.herokuapp.com/https://skincare-api.herokuapp.com/product?q=' + $event)
@@ -61,53 +70,61 @@ export default {
                     this.problem = true
                     console.log(error.message)
                 })
+            this.loading = false
             if (!this.firstAnswers.length) this.zero = true
             else {
-                this.cutTheList(this.firstAnswers, this.results, 0, 'right')
+                this.cutTheList('right')
                 return this.results
                 } 
                 
         },
-        cutTheList(origin, destination, start, direction){
+        cutTheList(direction){
+            console.log(this.answers)
             this.prev = true
             this.next = true
-            let i = start
-            let j = direction === 'right' ? start + 5 : start - 5 
-            this.start = j
-            this.first = origin[0]
-            this.last = origin[origin.length-1]
+            let i = this.start 
+            
             if (direction === 'right') {
-                while (i < j && origin[i]) {
-                    destination.push(origin[i])
+                let j = this.answers.length < this.start + 5 ? this.answers.length : this.start + 5
+                this.start = j
+                console.log(this.start + ' '+ j + ' ' + i)
+                while (i < j && this.answers[i]) {
+                    this.results.push(this.answers[i])
+                    console.log(i)
+                    console.log(this.results)
                     i++
-                }
-                if (destination.includes(this.last)) {
-                    this.next = false
                 }
 
             }
             else {
-                while (i-1 > j && origin[i-1]) {
-                    destination.push(origin[i-1])
+                let j = this.start - 5 < 0 ? 0 : this.start - 5
+                this.start = j
+                console.log(this.start + ' '+ j + ' ' + i)
+                --i
+                while (i >= j && this.answers[i]) {
+                    this.results.push(this.answers[i])
+                    console.log(i)
                     i--
                 }
-                if (destination.includes(this.first)) {
+                
+            }
+            if (this.results.includes(this.first)) {
                     this.prev = false
                 }
-            }
-            return destination
+                if (this.results.includes(this.last)) {
+                    this.next = false
+                }
+            return this.results
         },
-        sortTheList(){
-            
-        },
+        
         goPrev(){
             this.results = []
-            this.cutTheList(this.answers, this.results, this.start, 'left')
+            this.cutTheList('left')
             return this.results
         },
         goNext(){
             this.results = []
-            this.cutTheList(this.answers, this.results, this.start, 'right')
+            this.cutTheList('right')
             return this.results
         }
     },
@@ -123,166 +140,200 @@ export default {
 }
 </script>
 
-<style lang="stylus">
-$blue = #55D7FF
-$red = #DB0992
-$white = #FFF 
+<style> 
 
-.higher
-    background $blue
+.higher {
+    background: #55D7FF;
+}
 
-    .square
-        width: 100%
-        display grid
-        grid-template-columns repeat(4, 1fr)
-        grid-template-rows repeat(3, 1fr)
-    .title
-        grid-column 2 / 4
-        grid-row 2 / 3
-        padding-top 7%
-        h1
-            text-align center
-            font 1.4em 
-            font-weight bold
-    .total
-        max-width 100%
+.square {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+}
+.title {
+    grid-column: 2 / 4;
+    grid-row: 2 / 3;
+    padding-top: 7%;
+}
+.title h1 {
+    text-align: center;
+    font-size: 1.8em; 
+    font-weight: bold;
+    white-space: break-spaces;
+}
+.total {
+    max-width: 100%;
+}
 
-.lower
-    background $red
-    color $white
+.lower {
+    background: #DB0992;
+    color: #FFF;
+}
+#more {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    display: grid;
+    grid-template-rows: repeat(1, 1fr);
+    grid-template-columns: repeat(7, 1fr);
+    margin-top: 15px;
+    height: 50%;
+}
 
-    .more-search
-        background $blue
-        padding 2%
-        border-radius 8%
-        font-size 1em 
-    #more
-        grid-column 2 / 3
-        grid-row 1 / 2
-        display grid
-        grid-template-rows repeat(1, 1fr)
-        grid-template-columns repeat(7, 1fr)
-        height 50%
-    #left 
-        grid-column 3 / 4
-        grid-row 1 / 2
-        width 50%
-        margin 0 auto
-        
-    #center 
-        margin-top 5px
-        grid-column 4 / 5
-        grid-row 1 / 2
-        text-align center
-        margin auto 0
+.more-search {
+    background: #55D7FF;
+    padding: 2%;
+    border-radius: 8%;
+    font-size: 1em;
+}
+#left {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+    width: 50%;
+    margin: 0 auto;
+}
     
-    #right 
-        grid-column 5 / 6
-        grid-row 1 / 2
-        width 50%
-        margin 0 auto
-    
-    #loader
-    #failure
-    #empty
-        margin 15px 0 0 0
-        padding 0
-        text-align left
-        font-size 1.4em
+#center {
+    margin-top: 5px;
+    grid-column: 4 / 5;
+    grid-row: 1 / 2;
+    text-align: center;
+    margin: auto 0;
+}
 
-    #form
-        margin 0
-        padding 0
-        display grid
-        grid-template-columns repeat(20, 1fr)
-        grid-template-rows repeat(2, 50%)
-        .search
-            grid-column 1 / 16
-            grid-row 2 / 3
-            padding 2%
-            border-radius 8%
-            font-size 1.4em 
-        .btn-search
-            grid-column 17 / 21
-            grid-row 2 / 3
-            background $blue
-            padding 2%
-            border-radius 8%
-            font-size 1.4em 
-    #list
-        list-style-type none
-        margin 15px 0 0 0
-        padding 0
-        text-align left
-        font-size 1.4em
-        
-    .result
-        margin 5px 0 0 0
-        font-weight bold
-        span
-            font-weight 200
+#right {
+    grid-column: 5 / 6;
+    grid-row: 1 / 2;
+    width: 50%;
+    margin: 0 auto;
+}
+
+#loader, #failure, #empty {
+    margin: 15px 0 0 0;
+    padding: 0;
+    text-align: left;
+    font-size: 1.4em;
+    animation: fade .5s ease;
+}
+
+#form {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(2, 50%);
+}
+.search {
+    grid-column: 1 / 16;
+    grid-row: 2 / 3;
+    padding: 2%;
+    border-radius: 8%;
+    font-size: 1.4em; 
+}
+.btn-search {
+    grid-column: 17 / 21;
+    grid-row: 2 / 3;
+    background: #55D7FF;
+    padding: 2%;
+    border-radius: 8%;
+    font-size: 1.4em; 
+}
+#list {
+    list-style-type: none;
+    margin: 15px 0 0 0;
+    padding: 0;
+    text-align: left;
+    font-size: 1.4em;
+}
+    
+.result {
+    margin: 0 0 0 0;
+    padding: 0;
+    font-size: 1.4em;
+    font-weight: bold;
+    height: 1.1em;
+    animation: enter .5s ease;
+}
+.result span {
+    font-weight: 200;
+}
+@keyframes fade {
+    from {
+       opacity: 1; 
+    }
+    to {
+       opacity: 0;  
+    }
+}
+@keyframes enter {
+    from {
+       opacity: 0; 
+    }
+    to {
+       opacity: 1;  
+    }
+}
 
 @media (max-width: 767px) {
     #essay {
-        display grid
-        grid-template-rows repeat(3, 1fr)
-        grid-template-columns repeat(1, 1fr)
+        display: grid;
+        grid-template-rows: repeat(3, 1fr);
+        grid-template-columns: repeat(1, 1fr);
     }
     .higher {
-        grid-column: 1 / 2
-        grid-row: 1 / 3
-        display grid
-        grid-template-rows repeat(4, 1fr)
-        grid-template-columns repeat(3, 1fr)
+        grid-column: 1 / 2;
+        grid-row: 1 / 3;
+        display: grid;
+        grid-template-rows: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
     
     .lower {
-        padding 3%
-        grid-column: 1 / 2
-        grid-row: 3 / 4
-        display grid
-        grid-template-rows repeat(4, 1fr)
-        grid-template-columns repeat(1, 1fr)
+        padding: 3%;
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+        display: grid;
+        grid-template-rows: repeat(4, 1fr);
+        grid-template-columns: repeat(1, 1fr);
     }
-    #loader
-    #failure
-    #empty
-        grid-column 1 / 2
-        grid-row 2 / 4
+    #loader, #failure, #empty {
+        grid-column: 1 / 2;
+        grid-row: 2 / 4;
+    }
         
     #more {
-        grid-column: 1 / 2
-        grid-row: 4 / 5
+        grid-column: 1 / 2;
+        grid-row: 4 / 5;
     }
         
     
 }
 @media (min-width: 768px) {
     #essay {
-        display grid
-        grid-template-rows repeat(2, 1fr)
-        grid-template-columns repeat(1, 1fr)
+        display: grid;
+        grid-template-rows: repeat(2, 1fr);
+        grid-template-columns: repeat(1, 1fr);
     }
     .higher {
-        display grid
-        grid-template-rows repeat(2, 1fr)
-        grid-template-columns repeat(6, 1fr)
+        display: grid;
+        grid-template-rows: repeat(2, 1fr);
+        grid-template-columns: repeat(6, 1fr);
     }
     
     .lower {
-        display grid
-        grid-template-rows repeat(4, 1fr)
-        grid-template-columns repeat(4, 1fr)
+        display: grid;
+        grid-template-rows: repeat(4, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
-    #loader
-    #failure
-    #empty
-        grid-column 2 / 4
-        grid-row 2 / 4
+    #loader, #failure, #empty {
+        grid-column: 2 / 4;
+        grid-row: 2 / 4;
+    }
 
     #more {
-        grid-column: 1 / 5
-        grid-row: 4 / 5
+        grid-column: 1 / 5;
+        grid-row: 4 / 5;
     }
 
 }   

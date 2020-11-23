@@ -18,17 +18,17 @@ export default {
 }
 </script>
 
-<style lang="stylus">
+<style>
 @media (max-width: 767px) {
     #list {
-        grid-column: 1 / 2
-        grid-row: 2 / 4
+        grid-column: 1 / 2;
+        grid-row: 2 / 4;
     } 
 }
 @media (min-width: 768px) {
     #list {
-        grid-column: 2 / 4
-        grid-row: 2 / 4
+        grid-column: 2 / 5;
+        grid-row: 2 / 4;
     }  
 }  
 </style>

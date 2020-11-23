@@ -1,6 +1,6 @@
 <template lang="pug">
 p.result
-    strong &bull; {{ item.name }}
+    strong &bull; {{ item.name }} -
     span  {{ item.brand }}
 </template>
 
@@ -12,6 +12,6 @@ export default {
 }
 </script>
 
-<style lang="stylus">
+<style>
 
 </style>

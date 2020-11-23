@@ -12,18 +12,18 @@
     }
 </script>
 
-<style lang="stylus">
+<style>
 @media (max-width: 767px) {
     .square {
-        grid-column: 1 / 4
-        grid-row: 1 / 3
+        grid-column: 1 / 4;
+        grid-row: 1 / 3;
     }
     
 }
 @media (min-width: 768px) {
     .square {
-        grid-column: 1 / 4
-        grid-row: 1 / 3
+        grid-column: 1 / 4;
+        grid-row: 1 / 3;
     }
     
 }   

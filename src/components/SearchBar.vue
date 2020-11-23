@@ -27,18 +27,18 @@
     } 
 </script>
 
-<style lang="stylus">
+<style>
 @media (max-width: 767px) {
     #form {
-        grid-column: 1 / 2
-        grid-row: 1 / 2
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
     }
     
 }
 @media (min-width: 768px) {
     #form {
-        grid-column: 2 / 4
-        grid-row: 1 / 2
+        grid-column: 2 / 4;
+        grid-row: 1 / 2;
     }
-
+}
 </style>
