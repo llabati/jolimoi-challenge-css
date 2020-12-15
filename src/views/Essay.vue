@@ -4,7 +4,7 @@
         square-title(:title='title')
         square-img(:image='image')
     .lower
-        search-bar(@new-search="getResponseFromSearch($event)")
+        search-bar(@new-search="getResponseFromSearch($event)" @warning="warning = true")
         result-list(:results="results")
         #more(v-if="answers.length") 
             button.more-search#left(v-if="prev" @click='goPrev') 
@@ -12,8 +12,9 @@
             span#center {{ resultsToSee }} RESULTS LEFT TO SEE
             button.more-search#right(v-if="next" @click='goNext') 
                 strong &rarr;
+        p#warning(v-if="warning") You can enter words only!
         p#loader(v-if="loading") Loading... Be patient, it could take some time.
-        p#failure(v-if="problem") Server failed: {{ error.message }}. We are deeply sorry for the inconvenience. Can you retry later?
+        p#failure(v-if="problem") Server failed: {{ error }}. We are deeply sorry for the inconvenience. Can you retry later?
         p#empty(v-if="zero") Sorry, our server has not find any product. Have you another query? 
 </template>
 
@@ -23,19 +24,20 @@ import SquareImg from "../components/SquareImg.vue";
 import SquareTitle from "../components/SquareTitle.vue";
 import SearchBar from '@/components/SearchBar.vue';
 import ResultList from '@/components/ResultList.vue';
-import axios from 'axios';
+import { store } from '../store/index'
 
 export default {
+    store,
     data(){
         return {
             title: 'This is a page for\nbeauty product search',
             //image: '../assets/beauty-products.jpg',
             image: '/img/beauty-products.9840c506.jpg',
-            firstAnswers: [],
             results: [],
             start: 0,
             next: false,
             prev: false,
+            warning: false,
             loading: false,
             problem: false,
             zero: false
@@ -46,8 +48,14 @@ export default {
             if (this.answers.length - this.start < 0) return 0
             return this.answers.length - this.start
         },
+        firstAnswers(){
+            return this.$store.getters.getResults
+        },
+        error(){
+            return this.$store.getters.getError
+        },
         answers(){
-            return this.firstAnswers.sort( (a, b) => a.brand - b.brand )
+            return this.firstAnswers.sort( (a, b) => a.name - b.name )
         },
         first(){
             return this.answers[0]
@@ -58,23 +66,30 @@ export default {
         
     },
     methods: {
-    // make the API call
+    // supervise the API call
         async getResponseFromSearch($event){
             this.results = []
+            this.warning = false
             this.zero = false
             this.problem = false
             this.loading = true
-            await axios
-                .get('https://cors-anywhere.herokuapp.com/https://skincare-api.herokuapp.com/product?q=' + $event)
-                .then(res => (this.firstAnswers = res.data))
-                .catch(error => {
-                    this.problem = true
-                    console.log(error.message)
-                })
-            this.loading = false
+            let query = $event
             
-            // prepare the display of the results or the error
-            if (!this.firstAnswers.length) this.zero = true
+            // the API call is treated by the store
+            await this.$store.dispatch('saveQuery', query)
+            await this.$store.dispatch('sendAPICall')
+            
+            //this.firstAnswers = await this.$store.getters.getResults
+            //this.error = await this.$store.getters.getError
+            this.loading = false
+
+            // prepare the display of the error message
+            console.log('ERROR?', this.error)
+            if (this.error.length) this.problem = true
+
+            
+            // prepare the display of the results
+            else if (!this.firstAnswers.length) this.zero = true
             else {
                 this.cutTheList('right')
                 return this.results
@@ -84,6 +99,7 @@ export default {
         // prepare arrays of 5 items 
         cutTheList(direction){
             console.log(this.answers)
+            this.start = 0
             this.prev = true
             this.next = true
             let i = this.start 
@@ -98,7 +114,6 @@ export default {
                     console.log(this.results)
                     i++
                 }
-
             }
             else {
                 let j = this.start - 5 < 0 ? 0 : this.start - 5
@@ -213,7 +228,7 @@ export default {
     margin: 0 auto;
 }
 
-#loader, #failure, #empty {
+#warning, #loader, #failure, #empty {
     margin: 15px 0 0 0;
     padding: 0;
     text-align: left;
@@ -301,7 +316,7 @@ export default {
         grid-template-rows: repeat(4, 1fr);
         grid-template-columns: repeat(1, 1fr);
     }
-    #loader, #failure, #empty {
+    #warning, #loader, #failure, #empty {
         grid-column: 1 / 2;
         grid-row: 2 / 4;
     }
@@ -330,7 +345,7 @@ export default {
         grid-template-rows: repeat(4, 1fr);
         grid-template-columns: repeat(4, 1fr);
     }
-    #loader, #failure, #empty {
+    #warning, #loader, #failure, #empty {
         grid-column: 2 / 4;
         grid-row: 2 / 4;
     }
