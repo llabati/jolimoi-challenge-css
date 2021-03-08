@@ -12,18 +12,17 @@
             span#center {{ resultsToSee }} RESULTS LEFT TO SEE
             button.more-search#right(v-if="next" @click='goNext') 
                 strong &rarr;
-        p#warning(v-if="warning") You can enter words only!
-        p#loader(v-if="loading") Loading... Be patient, it could take some time.
-        p#failure(v-if="problem") Server failed: {{ error }}. We are deeply sorry for the inconvenience. Can you retry later?
-        p#empty(v-if="zero") Sorry, our server has not find any product. Have you another query? 
+        messages(:message="message")
+        
 </template>
 
 <script>
 /* eslint-disable */
 import SquareImg from "../components/SquareImg.vue";
 import SquareTitle from "../components/SquareTitle.vue";
-import SearchBar from '@/components/SearchBar.vue';
-import ResultList from '@/components/ResultList.vue';
+import SearchBar from '../components/SearchBar.vue';
+import ResultList from '../components/ResultList.vue';
+import Messages from '../components/Messages.vue'
 import { store } from '../store/index'
 
 export default {
@@ -63,6 +62,15 @@ export default {
         last(){
             return this.answers[this.answers.length-1]
         },
+        message() {
+            let message =''
+            if (this.warning) message = `You can enter words only!`
+            if (this.loading) message = `Loading... Be patient, it could take some time.`
+            if (this.problem) message = `Server failed: ${this.error}. We are deeply sorry for the inconvenience. Can you retry later?`
+            if (this.zero) message = `Sorry, our server has not find any product. Have you another query?`
+
+            return message
+        }
         
     },
     methods: {
@@ -79,8 +87,6 @@ export default {
             await this.$store.dispatch('saveQuery', query)
             await this.$store.dispatch('sendAPICall')
             
-            //this.firstAnswers = await this.$store.getters.getResults
-            //this.error = await this.$store.getters.getError
             this.loading = false
 
             // prepare the display of the error message
@@ -136,11 +142,14 @@ export default {
             return this.results
         },
         
+        // afficher les résultats précédents
         goPrev(){
             this.results = []
             this.cutTheList('left')
             return this.results
         },
+
+        // afficher les résultats suivants
         goNext(){
             this.results = []
             this.cutTheList('right')
@@ -151,7 +160,8 @@ export default {
         SquareTitle,
         SquareImg,
         SearchBar,
-        ResultList
+        ResultList,
+        Messages
     },
     mounted(){
         //this.getResponseFromSearch('laneige')
@@ -228,7 +238,7 @@ export default {
     margin: 0 auto;
 }
 
-#warning, #loader, #failure, #empty {
+#message {
     margin: 15px 0 0 0;
     padding: 0;
     text-align: left;
@@ -316,10 +326,6 @@ export default {
         grid-template-rows: repeat(4, 1fr);
         grid-template-columns: repeat(1, 1fr);
     }
-    #warning, #loader, #failure, #empty {
-        grid-column: 1 / 2;
-        grid-row: 2 / 4;
-    }
         
     #more {
         grid-column: 1 / 2;
@@ -345,11 +351,7 @@ export default {
         grid-template-rows: repeat(4, 1fr);
         grid-template-columns: repeat(4, 1fr);
     }
-    #warning, #loader, #failure, #empty {
-        grid-column: 2 / 4;
-        grid-row: 2 / 4;
-    }
-
+    
     #more {
         grid-column: 1 / 5;
         grid-row: 4 / 5;
